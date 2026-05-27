@@ -1,0 +1,16 @@
+{
+  "title": "Public Lands Template Library",
+  "subtitle": "The single source for approved decision letter templates. Search, find, and download — then complete the editable fields on your desktop.",
+  "org": "Government of Alberta — Lands Operations Division",
+  "footer": "Lands Operations Division · Public Lands Disposition Management",
+  "classification": "Classification: Public",
+  "theme": "custom",
+  "customColor": "#299900",
+  "categories": [
+    "Authorization",
+    "Formal Disposition",
+    "Security",
+    "Withdrawal",
+    "General"
+  ]
+}

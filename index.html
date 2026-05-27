@@ -118,6 +118,17 @@
   .dropzone.has-file { border-style: solid; border-color: var(--accent-accept); background: var(--accent-accept-bg); }
   .dropzone.has-file svg { color: var(--accent-accept); }
   .dropzone input[type=file] { display: none; }
+  .seg-title { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); font-weight: 700; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line-soft); }
+  .theme-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .theme-swatch { border: 2px solid var(--line); border-radius: 11px; padding: 12px; cursor: pointer; text-align: center; transition: all .15s; background: var(--paper); }
+  .theme-swatch:hover { border-color: var(--ink-soft); }
+  .theme-swatch.active { border-color: var(--alberta-blue); box-shadow: 0 0 0 3px rgba(0,82,155,.14); }
+  .theme-dot { width: 100%; height: 30px; border-radius: 7px; margin-bottom: 8px; }
+  .theme-name { font-size: 12.5px; font-weight: 600; color: var(--ink); }
+  .cat-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line-soft); }
+  .cat-row input { flex: 1; padding: 8px 11px; border: 1.5px solid var(--line); border-radius: 8px; font-family: inherit; font-size: 14px; background: var(--bg); }
+  .cat-row button { border: 1.5px solid var(--line); background: var(--paper); color: var(--accent-reject); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 16px; line-height: 1; flex-shrink: 0; }
+  .cat-row button:hover { border-color: var(--accent-reject); background: var(--accent-reject-bg); }
   .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
   .btn-primary { flex: 1; background: var(--alberta-blue); color: #fff; border: none; padding: 13px; border-radius: 10px; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; transition: background .16s; }
   .btn-primary:hover { background: var(--alberta-blue-dark); }
@@ -143,11 +154,11 @@
 </div>
 <header class="topbar">
   <div class="topbar-inner">
-    <div class="topstrip"><span class="flag">&#11042;</span> Government of Alberta &nbsp;&middot;&nbsp; Lands Operations Division</div>
+    <div class="topstrip"><span class="flag">&#11042;</span> <span id="siteOrg">Government of Alberta &mdash; Lands Operations Division</span></div>
     <div class="hero">
       <div>
-        <h1>Public Lands Template Library</h1>
-        <p>The single source for approved decision letter templates. Search, find, and download &mdash; then complete the editable fields on your desktop.</p>
+        <h1 id="siteTitle">Public Lands Template Library</h1>
+        <p id="siteSubtitle">The single source for approved decision letter templates.</p>
       </div>
       <div class="hero-stats">
         <div class="stat"><div class="num" id="statTotal">&mdash;</div><div class="lbl">Templates</div></div>
@@ -157,7 +168,8 @@
   </div>
 </header>
 <div class="admin-banner">
-  &#10022; Admin mode active &mdash; you can add, edit, and remove templates
+  &#10022; Admin mode active
+  <button onclick="openSettings()">Site settings</button>
   <button onclick="exitAdmin()">Exit admin</button>
 </div>
 <div class="toolbar-wrap">
@@ -185,7 +197,7 @@
   </div>
 </main>
 <footer>
-  <p><span class="cls">Classification: Public</span> &nbsp;&middot;&nbsp; Lands Operations Division &nbsp;&middot;&nbsp; Public Lands Disposition Management</p>
+  <p><span class="cls" id="siteClassification">Classification: Public</span> &nbsp;&middot;&nbsp; <span id="siteFooter">Lands Operations Division &middot; Public Lands Disposition Management</span></p>
   <p style="margin-top:8px;opacity:.8">Templates contain locked legal language. Complete only the editable fields. Do not alter standardized content.</p>
 </footer>
 <div class="overlay" id="loginOverlay">
@@ -246,6 +258,46 @@
     </div>
   </div>
 </div>
+<div class="overlay" id="settingsOverlay">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-head"><h2>Site settings</h2><p>Change the look and text of the library. Saved to your repo, so everyone sees it.</p></div>
+    <div class="modal-body">
+      <div class="seg-title">Theme</div>
+      <div class="theme-grid" id="themeGrid"></div>
+      <div class="field" style="margin-top:14px">
+        <label>Custom accent colour</label>
+        <div style="display:flex;gap:10px;align-items:center">
+          <input type="color" id="customColor" value="#00529b" style="width:54px;height:42px;padding:3px;cursor:pointer">
+          <input type="text" id="customColorHex" placeholder="#00529b" style="flex:1" oninput="syncHex()">
+          <button class="btn-ghost" style="padding:11px 16px" onclick="useCustom()">Use custom</button>
+        </div>
+        <div class="file-hint">Pick a preset above, or choose any colour here for a custom look.</div>
+      </div>
+
+      <div class="seg-title" style="margin-top:22px">Text</div>
+      <div class="field"><label>Site title</label><input type="text" id="setTitle"></div>
+      <div class="field"><label>Subtitle</label><textarea id="setSubtitle"></textarea></div>
+      <div class="field"><label>Top bar / organization line</label><input type="text" id="setOrg"></div>
+      <div class="field"><label>Footer line</label><input type="text" id="setFooter"></div>
+      <div class="field"><label>Classification label</label><input type="text" id="setClassification"></div>
+
+      <div class="seg-title" style="margin-top:22px">Categories</div>
+      <div class="file-hint" style="margin-bottom:10px">Used for the browse buttons and the category dropdown when adding templates.</div>
+      <div id="catList"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input type="text" id="newCat" placeholder="Add a category&hellip;" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:14px">
+        <button class="btn-ghost" style="padding:10px 16px" onclick="addCat()">Add</button>
+      </div>
+
+      <div class="err" id="settingsErr"></div>
+      <div class="ok-msg" id="settingsOk"></div>
+      <div class="modal-actions" style="margin-top:18px">
+        <button class="btn-ghost" onclick="closeModal('settingsOverlay')">Cancel</button>
+        <button class="btn-primary" id="settingsSaveBtn" onclick="saveSettings()">Save settings</button>
+      </div>
+    </div>
+  </div>
+</div>
 <script>
 /* ============================================================
    CONFIG - set these three to point at your repo.
@@ -256,12 +308,36 @@ const GITHUB_REPO   = "Document-Storage";
 const GITHUB_BRANCH = "main";
 const DOCS_DIR      = "documents";
 const MANIFEST      = "documents.json";
-const ADMIN_CODE    = "Lanks26";
-const CATEGORIES    = ["Authorization", "Formal Disposition", "Security", "Withdrawal", "General"];
+const SETTINGS_FILE = "settings.json";
+const ADMIN_CODE    = "lands26";
 /* ============================================================ */
 
+// Default site settings. These are used until a settings.json exists in the
+// repo; once an admin saves from the front end, settings.json overrides these.
+const DEFAULT_SETTINGS = {
+  title: "Public Lands Template Library",
+  subtitle: "The single source for approved decision letter templates. Search, find, and download \u2014 then complete the editable fields on your desktop.",
+  org: "Government of Alberta \u2014 Lands Operations Division",
+  footer: "Lands Operations Division \u00b7 Public Lands Disposition Management",
+  classification: "Classification: Public",
+  theme: "alberta",
+  customColor: "#00529b",
+  categories: ["Authorization", "Formal Disposition", "Security", "Withdrawal", "General"]
+};
+
+const THEMES = {
+  alberta:  { name: "Alberta Blue", base: "#00529b", dark: "#003a6e", soft: "#e8f0f8" },
+  slate:    { name: "Slate",        base: "#3f5168", dark: "#2a3848", soft: "#eef1f5" },
+  forest:   { name: "Forest",       base: "#1f6b4d", dark: "#114532", soft: "#e6f2ec" },
+  burgundy: { name: "Burgundy",     base: "#8a2436", dark: "#5e1825", soft: "#f6e8eb" },
+  teal:     { name: "Teal",         base: "#0a6b78", dark: "#054852", soft: "#e3f1f3" },
+  indigo:   { name: "Indigo",       base: "#3d3a8c", dark: "#272560", soft: "#ecebf6" }
+};
+
 const API = "https://api.github.com";
-let isAdmin = false, editingId = null, DOCS = [], manifestSha = null;
+let isAdmin = false, editingId = null, DOCS = [], manifestSha = null, settingsSha = null;
+let SETTINGS = Object.assign({}, DEFAULT_SETTINGS);
+let CATEGORIES = SETTINGS.categories.slice();
 let activeCat = "All", searchTerm = "";
 let TOKEN = localStorage.getItem('pl_gh_token') || "";
 
@@ -272,7 +348,8 @@ const esc = s => (s||"").replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g
 const rawUrl = path => `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${path}`;
 
 function init() {
-  document.getElementById('statCat').textContent = CATEGORIES.length;
+  applyTheme();
+  applyContent();
   buildFilters(); populateCatSelect();
   if (!configured()) {
     document.getElementById('setupBanner').classList.add('show');
@@ -280,7 +357,53 @@ function init() {
     document.getElementById('empty').style.display = 'block';
     return;
   }
-  loadDocs();
+  loadSettings().then(loadDocs);
+}
+
+async function loadSettings() {
+  try {
+    const res = await fetch(`${API}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${SETTINGS_FILE}?ref=${GITHUB_BRANCH}`, ghHeaders());
+    if (res.ok) {
+      const j = await res.json();
+      settingsSha = j.sha;
+      const text = decodeURIComponent(escape(atob(j.content.replace(/\n/g,''))));
+      SETTINGS = Object.assign({}, DEFAULT_SETTINGS, JSON.parse(text));
+    } else { settingsSha = null; }
+  } catch (e) { console.error(e); settingsSha = null; }
+  CATEGORIES = (SETTINGS.categories && SETTINGS.categories.length) ? SETTINGS.categories.slice() : DEFAULT_SETTINGS.categories.slice();
+  applyTheme(); applyContent(); buildFilters(); populateCatSelect();
+}
+
+function applyTheme(themeOverride, colorOverride) {
+  const r = document.documentElement.style;
+  const theme = themeOverride || SETTINGS.theme;
+  const color = colorOverride || SETTINGS.customColor || '#00529b';
+  let base, dark, soft;
+  if (theme === 'custom') {
+    base = color; dark = shade(base, -28); soft = tint(base, 0.90);
+  } else {
+    const t = THEMES[theme] || THEMES.alberta;
+    base = t.base; dark = t.dark; soft = t.soft;
+  }
+  r.setProperty('--alberta-blue', base);
+  r.setProperty('--alberta-blue-dark', dark);
+  r.setProperty('--alberta-blue-soft', soft);
+}
+// darken/lighten helpers for custom colors
+function hexToRgb(h){ h=h.replace('#',''); if(h.length===3)h=h.split('').map(c=>c+c).join(''); const n=parseInt(h,16); return [(n>>16)&255,(n>>8)&255,n&255]; }
+function rgbToHex(r,g,b){ return '#'+[r,g,b].map(x=>Math.max(0,Math.min(255,Math.round(x))).toString(16).padStart(2,'0')).join(''); }
+function shade(hex,pct){ const [r,g,b]=hexToRgb(hex); const f=1+pct/100; return rgbToHex(r*f,g*f,b*f); }
+function tint(hex,amt){ const [r,g,b]=hexToRgb(hex); return rgbToHex(r+(255-r)*amt, g+(255-g)*amt, b+(255-b)*amt); }
+
+function applyContent() {
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('siteTitle', SETTINGS.title);
+  set('siteSubtitle', SETTINGS.subtitle);
+  set('siteOrg', SETTINGS.org);
+  set('siteFooter', SETTINGS.footer);
+  set('siteClassification', SETTINGS.classification);
+  document.title = SETTINGS.title;
+  document.getElementById('statCat').textContent = CATEGORIES.length;
 }
 async function loadDocs() {
   document.getElementById('loading').style.display = 'block';
@@ -375,8 +498,101 @@ function saveToken() {
   TOKEN = v;
   if (document.getElementById('rememberTok').checked) localStorage.setItem('pl_gh_token', v);
   document.getElementById('tokenInput').value=''; err.classList.remove('show');
-  closeModal('tokenOverlay'); loadDocs();
+  closeModal('tokenOverlay'); loadSettings().then(loadDocs);
 }
+
+/* ---------- Site settings panel ---------- */
+let draftTheme = 'alberta', draftColor = '#00529b', draftCats = [];
+function openSettings() {
+  if (!TOKEN) { openModal('tokenOverlay'); return; }
+  draftTheme = SETTINGS.theme; draftColor = SETTINGS.customColor || '#00529b';
+  draftCats = CATEGORIES.slice();
+  document.getElementById('setTitle').value = SETTINGS.title;
+  document.getElementById('setSubtitle').value = SETTINGS.subtitle;
+  document.getElementById('setOrg').value = SETTINGS.org;
+  document.getElementById('setFooter').value = SETTINGS.footer;
+  document.getElementById('setClassification').value = SETTINGS.classification;
+  document.getElementById('customColor').value = draftColor;
+  document.getElementById('customColorHex').value = draftColor;
+  document.getElementById('settingsErr').classList.remove('show');
+  document.getElementById('settingsOk').classList.remove('show');
+  renderThemeGrid(); renderCatList();
+  openModal('settingsOverlay');
+}
+function renderThemeGrid() {
+  const g = document.getElementById('themeGrid');
+  g.innerHTML = Object.keys(THEMES).map(k => {
+    const t = THEMES[k];
+    return `<div class="theme-swatch ${draftTheme===k?'active':''}" onclick="pickTheme('${k}')">
+      <div class="theme-dot" style="background:linear-gradient(135deg,${t.dark},${t.base})"></div>
+      <div class="theme-name">${t.name}</div></div>`;
+  }).join('');
+}
+function pickTheme(k) {
+  draftTheme = k;
+  applyTheme(draftTheme, draftColor); // live preview using draft only
+  renderThemeGrid();
+}
+function syncHex() {
+  const v = document.getElementById('customColorHex').value.trim();
+  if (/^#?[0-9a-fA-F]{6}$/.test(v)) { const hex = v.startsWith('#')?v:'#'+v; document.getElementById('customColor').value = hex; }
+}
+function useCustom() {
+  const hex = document.getElementById('customColor').value;
+  draftColor = hex; draftTheme = 'custom';
+  applyTheme(draftTheme, draftColor); // live preview using draft only
+  renderThemeGrid();
+}
+document.getElementById('customColor').addEventListener('input', e => {
+  document.getElementById('customColorHex').value = e.target.value;
+  draftColor = e.target.value; draftTheme = 'custom';
+  applyTheme(draftTheme, draftColor); renderThemeGrid();
+});
+function renderCatList() {
+  document.getElementById('catList').innerHTML = draftCats.map((c,i) =>
+    `<div class="cat-row"><input value="${esc(c)}" onchange="editCat(${i}, this.value)"><button onclick="removeCat(${i})" title="Remove">&times;</button></div>`
+  ).join('');
+}
+function addCat() {
+  const inp = document.getElementById('newCat'); const v = inp.value.trim();
+  if (v && !draftCats.includes(v)) { draftCats.push(v); inp.value=''; renderCatList(); }
+}
+function editCat(i, v) { v=v.trim(); if (v) draftCats[i]=v; }
+function removeCat(i) { draftCats.splice(i,1); renderCatList(); }
+document.getElementById('newCat').addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();addCat();} });
+
+function settingsB64() {
+  const obj = {
+    title: document.getElementById('setTitle').value.trim() || DEFAULT_SETTINGS.title,
+    subtitle: document.getElementById('setSubtitle').value.trim(),
+    org: document.getElementById('setOrg').value.trim(),
+    footer: document.getElementById('setFooter').value.trim(),
+    classification: document.getElementById('setClassification').value.trim(),
+    theme: draftTheme,
+    customColor: draftColor,
+    categories: draftCats.filter(Boolean)
+  };
+  return { obj, b64: btoa(unescape(encodeURIComponent(JSON.stringify(obj, null, 2)))) };
+}
+async function saveSettings() {
+  const err = document.getElementById('settingsErr'), ok = document.getElementById('settingsOk'), btn = document.getElementById('settingsSaveBtn');
+  err.classList.remove('show'); ok.classList.remove('show');
+  if (!TOKEN) { openModal('tokenOverlay'); return; }
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    const { obj, b64 } = settingsB64();
+    const res = await putFile(SETTINGS_FILE, b64, 'Update site settings', settingsSha);
+    settingsSha = res.content.sha;
+    SETTINGS = Object.assign({}, DEFAULT_SETTINGS, obj);
+    CATEGORIES = SETTINGS.categories.slice();
+    applyTheme(); applyContent(); buildFilters(); populateCatSelect();
+    ok.textContent = 'Settings saved to GitHub.'; ok.classList.add('show');
+    setTimeout(()=>closeModal('settingsOverlay'), 800);
+  } catch (e) {
+    err.textContent = 'Error: ' + e.message; err.classList.add('show');
+  } finally { btn.disabled = false; btn.textContent = 'Save settings'; }
+}
+
 function populateCatSelect() { document.getElementById('fCategory').innerHTML = CATEGORIES.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join(''); }
 function openEdit() {
   if (!TOKEN) { openModal('tokenOverlay'); return; }
@@ -496,6 +712,7 @@ function openModal(id){ document.getElementById(id).classList.add('show'); }
 function closeModal(id){
   document.getElementById(id).classList.remove('show');
   if (id==='editOverlay') { document.getElementById('editTitle').textContent='Add template'; document.getElementById('fileHint').textContent='Accepted: .dotx, .docx, .doc'; editingId=null; clearForm(); }
+  if (id==='settingsOverlay') { applyTheme(); applyContent(); } // revert any unsaved live preview to the saved SETTINGS
 }
 document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) closeModal(o.id); }));
 document.addEventListener('keydown', e => { if(e.key==='Escape') document.querySelectorAll('.overlay.show').forEach(o=>closeModal(o.id)); });

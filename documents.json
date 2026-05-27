@@ -6,5 +6,15 @@
     "Withdrawal",
     "General"
   ],
-  "documents": []
+  "documents": [
+    {
+      "id": "test-mpo8rykx",
+      "name": "Test",
+      "category": "Withdrawal",
+      "tags": [],
+      "description": "",
+      "file": "documents/Authorization_Completeness_Decision_Acceptance_Letter__1_.dotx",
+      "effectiveDate": "2026-05-27"
+    }
+  ]
 }
